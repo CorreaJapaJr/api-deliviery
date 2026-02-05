@@ -7,6 +7,42 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id         String     @id @default(uuid())
+  email      String     @unique
+  name       String?
+  role       UserRole   @default(customer)
+  password   String
+  createdAt  DateTime   @default(now()) @map("createdAt")
+  updatedAt  DateTime?  @updatedAt @map("updatedAt")
+  deliveries Delivery[]
+
+  @@map("users")
+}
+
+model Delivery {
+  id          String         @id @default(uuid())
+  userId      String         @map("user_id")
+  description String
+  status      DeliveryStatus @default(pending)
+  createdAt   DateTime       @default(now()) @map("createdAt")
+  updatedAt   DateTime?      @updatedAt @map("updatedAt")
+  user        User           @relation(fields: [userId], references: [id])
+  logs        DeliveryLogs[]
+
+  @@map("deliveries")
+}
+
+model DeliveryLogs {
+  id          String    @id @default(uuid())
+  description String
+  deliveryId  String    @map("delivery_id")
+  createdAt   DateTime  @default(now()) @map("createdAt")
+  updatedAt   DateTime? @updatedAt @map("updatedAt")
+  delivery    Delivery  @relation(fields: [deliveryId], references: [id])
+
+  @@map("delivery_logs")
+}
 
 enum UserRole {
   customer
@@ -17,46 +53,4 @@ enum DeliveryStatus {
   pending
   shipped
   delivered
-}
-
-model User {
-  id String @id @default(uuid())
-  email String @unique
-  name  String?
-  role  UserRole @default(customer)
-  password String
-
-  deliveries Delivery[]
-  createdAt   DateTime @default(now()) @map("createdAt")
-  updatedAt   DateTime? @updatedAt @map("updatedAt")
-
-  @@map("users")
-}
-
-model Delivery{
-id String @id @default(uuid())
-  userId      String @map("user_id")
-  description String
- status DeliveryStatus @default(pending)
-  createdAt   DateTime @default(now()) @map("createdAt")
-  updatedAt   DateTime? @updatedAt @map("updatedAt")
-
-
-  user User @relation(fields: [userId], references: [id])
-  logs DeliveryLogs[]
-
-  @@map("deliveries")
-}
-
-model DeliveryLogs {
-  id String @id @default(uuid())
-  description String
-  deliveryId String @map("delivery_id")
-
-  delivery Delivery @relation(fields: [deliveryId], references: [id])
-  
-  createdAt   DateTime @default(now()) @map("createdAt")
-  updatedAt   DateTime? @updatedAt @map("updatedAt")
-
-  @@map("delivery_logs")
 }
